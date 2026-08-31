@@ -1,0 +1,917 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SIGNATEC — Guante traductor de Lengua de Señas Argentina</title>
+<meta name="description" content="SIGNATEC traduce en tiempo real la Lengua de Señas Argentina a voz, usando un guante con sensores flex y giroscopio conectado a un ESP32.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Source+Sans+3:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy-950:#08131f;
+    --navy-900:#0b1c2c;
+    --navy-800:#102842;
+    --navy-700:#183a5c;
+    --teal-500:#17a398;
+    --teal-400:#3fc7b8;
+    --blue-500:#2f6fb0;
+    --ink-100:#eef4f6;
+    --ink-300:#c4d3dd;
+    --slate-400:#7d93a3;
+    --line:rgba(238,244,246,0.12);
+    --wire-red:#e0625a;
+    --wire-amber:#e0a94a;
+    --radius-s:3px;
+    --maxw:1160px;
+  }
+
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:var(--navy-950);
+    color:var(--ink-100);
+    font-family:'Source Sans 3', sans-serif;
+    font-size:17px;
+    line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3, .display{
+    font-family:'Space Grotesk', sans-serif;
+    font-weight:600;
+    line-height:1.12;
+    margin:0;
+    letter-spacing:-0.01em;
+  }
+  .mono{
+    font-family:'Space Mono', monospace;
+  }
+  p{margin:0;}
+  img{max-width:100%;display:block;}
+  a{color:inherit;}
+  .wrap{
+    max-width:var(--maxw);
+    margin:0 auto;
+    padding:0 28px;
+  }
+  section{position:relative;}
+
+  @media (prefers-reduced-motion: reduce){
+    *{animation-duration:0.01ms !important; transition-duration:0.01ms !important;}
+  }
+
+  /* ---------- circuit spine ---------- */
+  .spine{
+    position:absolute;
+    left:50%;
+    top:0;
+    bottom:0;
+    width:1px;
+    background:linear-gradient(to bottom, transparent, var(--line) 8%, var(--line) 92%, transparent);
+    z-index:0;
+  }
+  .node{
+    position:absolute;
+    left:50%;
+    width:9px;height:9px;
+    border-radius:50%;
+    background:var(--navy-950);
+    border:1.5px solid var(--teal-400);
+    transform:translateX(-50%);
+    box-shadow:0 0 12px rgba(63,199,184,0.5);
+  }
+
+  /* ---------- nav ---------- */
+  header{
+    position:sticky;
+    top:0;
+    z-index:40;
+    background:rgba(8,19,31,0.86);
+    backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--line);
+  }
+  .nav{
+    max-width:var(--maxw);
+    margin:0 auto;
+    padding:16px 28px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+  }
+  .brand{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    font-family:'Space Grotesk';
+    font-weight:600;
+    font-size:1.05rem;
+    letter-spacing:0.01em;
+  }
+  .brand-mark{
+    width:30px;height:30px;
+    border-radius:7px;
+    overflow:hidden;
+    flex:none;
+    border:1px solid var(--line);
+  }
+  .brand-mark img{width:100%;height:100%;object-fit:cover;}
+  nav ul{
+    list-style:none;
+    list-style-type:none;
+    display:flex;
+    flex-wrap:wrap;
+    margin:0;
+    padding:0;
+    font-size:0.92rem;
+    color:var(--ink-300);
+  }
+  nav ul li{
+    list-style:none;
+    display:block;
+    margin:0 28px 0 0;
+    padding:0;
+  }
+  nav ul li:last-child{margin-right:0;}
+  nav ul a{text-decoration:none;transition:color .15s; white-space:nowrap;}
+  nav ul a:hover{color:var(--teal-400);}
+  .nav-cta{
+    display:inline-block;
+    padding:9px 18px;
+    background:var(--teal-500);
+    color:var(--navy-950);
+    font-weight:600;
+    font-size:0.9rem;
+    border-radius:6px;
+    text-decoration:none;
+    white-space:nowrap;
+  }
+  .navlinks-mobile-hide{display:flex;}
+  @media (max-width:720px){
+    .navlinks-mobile-hide{display:none;}
+  }
+
+  /* ---------- hero ---------- */
+  .hero{
+    padding:88px 0 76px;
+    overflow:hidden;
+  }
+  .hero-grid{
+    display:grid;
+    grid-template-columns:1.05fr 0.95fr;
+    gap:56px;
+    align-items:center;
+  }
+  .eyebrow-line{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    color:var(--teal-400);
+    font-size:0.86rem;
+    margin-bottom:22px;
+  }
+  .eyebrow-line .dash{width:22px;height:1px;background:var(--teal-400);}
+  h1.headline{
+    font-size:clamp(2.3rem, 4.6vw, 3.4rem);
+    color:var(--ink-100);
+  }
+  h1.headline .grad{
+    background:linear-gradient(90deg, var(--teal-400), var(--blue-500));
+    -webkit-background-clip:text;
+    background-clip:text;
+    color:transparent;
+  }
+  .hero-sub{
+    margin-top:22px;
+    max-width:46ch;
+    color:var(--ink-300);
+    font-size:1.08rem;
+  }
+  .hero-ctas{
+    margin-top:34px;
+    display:flex;
+    gap:14px;
+    flex-wrap:wrap;
+  }
+  .btn-primary{
+    display:inline-block;
+    padding:13px 24px;
+    background:var(--teal-500);
+    color:var(--navy-950);
+    font-weight:600;
+    border-radius:6px;
+    text-decoration:none;
+    font-size:0.98rem;
+    transition:transform .15s, box-shadow .15s;
+  }
+  .btn-primary:hover{transform:translateY(-1px); box-shadow:0 8px 22px rgba(23,163,152,0.28);}
+  .btn-ghost{
+    display:inline-block;
+    padding:13px 24px;
+    border:1px solid var(--line);
+    color:var(--ink-100);
+    border-radius:6px;
+    text-decoration:none;
+    font-size:0.98rem;
+  }
+  .btn-ghost:hover{border-color:var(--teal-400); color:var(--teal-400);}
+
+  .hero-visual{
+    position:relative;
+    border-radius:14px;
+    overflow:hidden;
+    border:1px solid var(--line);
+    background:var(--navy-900);
+  }
+  .hero-visual img{width:100%;height:100%;object-fit:cover;aspect-ratio:4/5;}
+  .hero-visual .tag{
+    position:absolute;
+    left:16px;bottom:16px;
+    background:rgba(8,19,31,0.82);
+    border:1px solid var(--line);
+    padding:8px 12px;
+    border-radius:6px;
+    font-size:0.78rem;
+    color:var(--ink-300);
+  }
+  .hero-visual .tag .mono{color:var(--teal-400);}
+  .hero-logo-badge{
+    position:absolute;
+    top:16px; right:16px;
+    width:56px; height:56px;
+    border-radius:12px;
+    overflow:hidden;
+    border:1px solid var(--line);
+    box-shadow:0 8px 22px rgba(0,0,0,0.35);
+    background:var(--navy-900);
+  }
+  .hero-logo-badge img{width:100%;height:100%;object-fit:cover;aspect-ratio:auto;}
+  @media (max-width:480px){
+    .hero-logo-badge{width:44px;height:44px;top:12px;right:12px;}
+  }
+
+  /* ---------- stat strip ---------- */
+  .stat-strip{
+    border-top:1px solid var(--line);
+    border-bottom:1px solid var(--line);
+    background:var(--navy-900);
+  }
+  .stat-strip .wrap{
+    display:grid;
+    grid-template-columns:repeat(3, 1fr);
+    gap:0;
+  }
+  .stat-cell{
+    padding:34px 24px;
+    text-align:center;
+    border-left:1px solid var(--line);
+  }
+  .stat-cell:first-child{border-left:none;}
+  .stat-num{
+    font-family:'Space Mono', monospace;
+    font-size:2.2rem;
+    color:var(--teal-400);
+    font-weight:700;
+  }
+  .stat-label{
+    margin-top:8px;
+    color:var(--slate-400);
+    font-size:0.88rem;
+    max-width:26ch;
+    margin-left:auto;
+    margin-right:auto;
+  }
+  @media (max-width:720px){
+    .stat-strip .wrap{grid-template-columns:1fr;}
+    .stat-cell{border-left:none; border-top:1px solid var(--line);}
+    .stat-cell:first-child{border-top:none;}
+  }
+
+  /* ---------- section heading pattern ---------- */
+  .section{padding:96px 0;}
+  .section-head{
+    max-width:640px;
+    margin-bottom:52px;
+  }
+  .kicker{
+    color:var(--teal-400);
+    font-size:0.86rem;
+    margin-bottom:14px;
+  }
+  .section-head h2{
+    font-size:clamp(1.7rem, 3vw, 2.3rem);
+  }
+  .section-head p{
+    margin-top:14px;
+    color:var(--ink-300);
+    font-size:1.03rem;
+  }
+
+  /* ---------- problem section ---------- */
+  .problem-body{
+    display:grid;
+    grid-template-columns:1.1fr 0.9fr;
+    gap:56px;
+    align-items:start;
+  }
+  .problem-body p + p{margin-top:16px;}
+  .problem-body .lede{color:var(--ink-300);}
+  .quote-card{
+    background:var(--navy-900);
+    border:1px solid var(--line);
+    border-left:3px solid var(--teal-500);
+    padding:26px 26px;
+    border-radius:8px;
+  }
+  .quote-card p{
+    font-family:'Space Grotesk';
+    font-size:1.15rem;
+    line-height:1.4;
+    color:var(--ink-100);
+  }
+  .quote-card .src{
+    margin-top:14px;
+    color:var(--slate-400);
+    font-size:0.85rem;
+  }
+  @media (max-width:800px){
+    .problem-body{grid-template-columns:1fr;}
+  }
+
+  /* ---------- how it works — real sequence ---------- */
+  .steps{
+    display:grid;
+    gap:0;
+  }
+  .step{
+    display:grid;
+    grid-template-columns:64px 1fr;
+    gap:24px;
+    padding:28px 0;
+    border-top:1px solid var(--line);
+  }
+  .step:last-child{border-bottom:1px solid var(--line);}
+  .step-num{
+    font-family:'Space Mono';
+    color:var(--teal-400);
+    font-size:0.95rem;
+    padding-top:4px;
+  }
+  .step h3{
+    font-size:1.18rem;
+    color:var(--ink-100);
+    margin-bottom:8px;
+  }
+  .step p{color:var(--ink-300); max-width:60ch;}
+  .step .parts{
+    margin-top:10px;
+    font-family:'Space Mono';
+    font-size:0.78rem;
+    color:var(--teal-400);
+  }
+
+  /* ---------- gallery ---------- */
+  .gallery{
+    display:grid;
+    grid-template-columns:repeat(3, 1fr);
+    gap:14px;
+  }
+  .gallery figure{
+    margin:0;
+    overflow:hidden;
+    border-radius:8px;
+    border:1px solid var(--line);
+    position:relative;
+    aspect-ratio:4/3;
+    background:var(--navy-900);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+  .gallery img{width:100%;height:100%;object-fit:contain;}
+  .gallery figcaption{
+    position:absolute;
+    left:0;right:0;bottom:0;
+    padding:10px 12px;
+    font-size:0.76rem;
+    color:var(--ink-100);
+    background:linear-gradient(to top, rgba(8,19,31,0.92), transparent 80%);
+  }
+  @media (max-width:820px){
+    .gallery{grid-template-columns:repeat(2,1fr);}
+  }
+  @media (max-width:480px){
+    .gallery{grid-template-columns:1fr;}
+  }
+
+  /* ---------- impact ---------- */
+  .impact{
+    background:var(--navy-900);
+    border-top:1px solid var(--line);
+    border-bottom:1px solid var(--line);
+  }
+  .impact-grid{
+    display:grid;
+    grid-template-columns:0.9fr 1.1fr;
+    gap:56px;
+    align-items:center;
+  }
+  .impact-num{
+    font-family:'Space Mono';
+    font-size:5rem;
+    color:var(--teal-400);
+    line-height:1;
+  }
+  .impact-num sup{font-size:2rem;top:-1.6em;}
+  .impact-cap{
+    margin-top:10px;
+    color:var(--ink-300);
+    max-width:34ch;
+  }
+  .impact-list{list-style:none; margin:0; padding:0; display:grid; gap:18px;}
+  .impact-list li{
+    display:grid;
+    grid-template-columns:20px 1fr;
+    gap:12px;
+    color:var(--ink-300);
+  }
+  .impact-list li::before{
+    content:"";
+    width:8px;height:8px;
+    margin-top:8px;
+    border-radius:50%;
+    background:var(--teal-500);
+  }
+  .impact-list b{color:var(--ink-100); font-weight:600;}
+  @media (max-width:800px){
+    .impact-grid{grid-template-columns:1fr;}
+  }
+  @media (max-width:720px){
+    .gallery[style*="repeat(2,1fr)"]{grid-template-columns:1fr !important;}
+  }
+
+  /* ---------- roadmap ---------- */
+  .roadmap-grid{
+    display:grid;
+    grid-template-columns:repeat(4, 1fr);
+    gap:20px;
+  }
+  .roadmap-card{
+    background:var(--navy-900);
+    border:1px solid var(--line);
+    border-radius:8px;
+    padding:22px 20px;
+  }
+  .roadmap-card .ico{
+    width:34px;height:34px;
+    border-radius:7px;
+    background:var(--navy-800);
+    border:1px solid var(--line);
+    margin-bottom:16px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:var(--teal-400);
+    font-family:'Space Mono';
+    font-size:0.85rem;
+  }
+  .roadmap-card h3{font-size:1.02rem; margin-bottom:8px; color:var(--ink-100);}
+  .roadmap-card p{color:var(--slate-400); font-size:0.92rem;}
+  @media (max-width:820px){
+    .roadmap-grid{grid-template-columns:repeat(2,1fr);}
+  }
+  @media (max-width:520px){
+    .roadmap-grid{grid-template-columns:1fr;}
+  }
+
+  /* ---------- cta band ---------- */
+  .cta-band{
+    padding:88px 0;
+    text-align:center;
+  }
+  .cta-band h2{
+    font-size:clamp(1.8rem, 3.6vw, 2.6rem);
+    max-width:20ch;
+    margin:0 auto;
+  }
+  .cta-band p{
+    margin-top:16px;
+    color:var(--ink-300);
+    max-width:48ch;
+    margin-left:auto;
+    margin-right:auto;
+  }
+  .cta-band .hero-ctas{justify-content:center;}
+
+  /* ---------- footer ---------- */
+  footer{
+    border-top:1px solid var(--line);
+    padding:44px 0 34px;
+  }
+  .foot-grid{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    flex-wrap:wrap;
+    gap:24px;
+  }
+  .foot-brand{display:flex; align-items:center; gap:10px; font-family:'Space Grotesk'; font-weight:600;}
+  .foot-note{color:var(--slate-400); font-size:0.86rem; max-width:40ch;}
+  .credits{
+    margin-top:32px;
+    padding-top:24px;
+    border-top:1px solid var(--line);
+    display:grid;
+    grid-template-columns:repeat(4, 1fr);
+    gap:20px;
+  }
+  .credits-item{
+    display:flex;
+    flex-direction:column;
+    gap:4px;
+  }
+  .credits-label{
+    font-size:0.72rem;
+    color:var(--teal-400);
+  }
+  .credits-value{
+    font-size:0.85rem;
+    color:var(--ink-300);
+  }
+  @media (max-width:820px){
+    .credits{grid-template-columns:repeat(2, 1fr);}
+  }
+  @media (max-width:480px){
+    .credits{grid-template-columns:1fr;}
+  }
+  footer .copyright{
+    margin-top:28px;
+    color:var(--slate-400);
+    font-size:0.8rem;
+    border-top:1px solid var(--line);
+    padding-top:20px;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="nav">
+    <div class="brand">
+      <span class="brand-mark"><img src="images/signatec_logo.jpeg" alt="Logo Signatec"></span>
+      SIGNATEC
+    </div>
+    <ul class="navlinks-mobile-hide">
+      <li><a href="#problema">Problemática</a></li>
+      <li><a href="#funcionamiento">Cómo funciona</a></li>
+      <li><a href="#proceso">El proceso</a></li>
+      <li><a href="#impacto">Impacto</a></li>
+    </ul>
+    <a href="#contacto" class="nav-cta">Contactar al equipo</a>
+  </div>
+</header>
+
+<main>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="wrap hero-grid">
+      <div>
+        <div class="eyebrow-line"><span class="dash"></span> Proyecto de Feria de Ciencias — LSA</div>
+        <h1 class="headline">Un guante que convierte <span class="grad">señas en voz</span>, en tiempo real.</h1>
+        <p class="hero-sub">SIGNATEC es un guante traductor de Lengua de Señas Argentina: interpreta la configuración y el movimiento de la mano y los transforma en palabras habladas, para acercar a personas sordas y oyentes en una conversación cotidiana.</p>
+        <div class="hero-ctas">
+          <a href="#funcionamiento" class="btn-primary">Ver cómo funciona</a>
+          <a href="#proceso" class="btn-ghost">Ver el prototipo</a>
+        </div>
+      </div>
+      <div class="hero-visual">
+        <img src="images/equipo_feria.jpeg" alt="Equipo de Signatec presentando el proyecto en la feria de ciencias">
+        <div class="hero-logo-badge"><img src="images/signatec_logo.jpeg" alt="Logo Signatec"></div>
+        <div class="tag">Feria ACTE · prototipo en vivo</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- STAT STRIP -->
+  <section class="stat-strip">
+    <div class="wrap">
+      <div class="stat-cell">
+        <div class="stat-num">93%</div>
+        <div class="stat-label">de las personas oyentes encuestadas no conoce la Lengua de Señas Argentina</div>
+      </div>
+      <div class="stat-cell">
+        <div class="stat-num">97%</div>
+        <div class="stat-label">considera que un guante traductor sería una herramienta útil para la inclusión</div>
+      </div>
+      <div class="stat-cell">
+        <div class="stat-num">79%</div>
+        <div class="stat-label">cree que las personas con discapacidad del habla tienen dificultades para comunicarse a diario</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PROBLEMÁTICA -->
+  <section class="section" id="problema">
+    <div class="wrap problem-body">
+      <div>
+        <div class="section-head" style="margin-bottom:0;">
+          <div class="kicker">La problemática</div>
+          <h2>La barrera no está en la señas, está en quien no las entiende</h2>
+        </div>
+        <p class="lede" style="margin-top:22px;">Hoy, las personas sordomudas enfrentan barreras importantes para comunicarse con quienes no conocen la lengua de señas. Eso complica el acceso a la salud, la educación, el transporte público y los comercios de todos los días.</p>
+        <p class="lede">SIGNATEC no reemplaza el aprendizaje de la LSA: funciona como puente inmediato en el momento en que esa barrera aparece, dando voz a la seña en el instante en que se hace.</p>
+      </div>
+      <div class="quote-card">
+        <p>"SIGNATEC no es solo un guante traductor; es un puente tecnológico diseñado para que la comunicación sea un derecho equitativo para todos."</p>
+        <div class="src">— Conclusiones del proyecto</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- INVESTIGACIÓN DE CAMPO -->
+  <section class="section" style="padding-top:0;">
+    <div class="wrap">
+      <div class="problem-body" style="align-items:center;">
+        <div class="hero-visual" style="order:2;">
+          <img src="images/pegando_qr_encuesta.jpeg" alt="Estudiantes pegando el código QR de la encuesta de campo">
+          <div class="tag">Encuesta de campo · código QR</div>
+        </div>
+        <div style="order:1;">
+          <div class="kicker">Investigación de campo</div>
+          <h2 style="font-size:clamp(1.6rem,2.8vw,2.1rem);">El diseño arrancó preguntando, no soldando</h2>
+          <p class="lede" style="margin-top:18px;">Antes de tocar un cable, el equipo salió a encuestar tanto a personas oyentes como a personas con discapacidad del habla, para entender dónde se sentía más la barrera de comunicación. Esos resultados —el 93%, el 97%, el 79%— son los que terminaron definiendo qué tenía que resolver SIGNATEC.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CÓMO FUNCIONA -->
+  <section class="section" id="funcionamiento" style="padding-top:0;">
+    <div class="wrap">
+      <div class="section-head">
+        <div class="kicker">Cómo funciona</div>
+        <h2>De la seña a la palabra, en cuatro pasos</h2>
+        <p>Cada dedo y cada giro de la mano se convierten en una señal eléctrica que el microcontrolador interpreta y traduce.</p>
+      </div>
+      <div class="steps">
+        <div class="step">
+          <div class="step-num mono">01</div>
+          <div>
+            <h3>Los sensores flex leen la posición de los dedos</h3>
+            <p>Una tira sensora en cada dedo del guante cambia su resistencia según el grado de flexión, generando una lectura distinta para cada configuración de mano.</p>
+            <div class="parts">SENSORES FLEX × 5</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num mono">02</div>
+          <div>
+            <h3>El MPU6050 capta el movimiento y la orientación</h3>
+            <p>El giroscopio y acelerómetro detectan hacia dónde y cómo se mueve la mano, un parámetro clave para diferenciar señas que se parecen en la forma pero no en el gesto.</p>
+            <div class="parts">MPU6050 · GIROSCOPIO/ACELERÓMETRO</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num mono">03</div>
+          <div>
+            <h3>El ESP32 procesa e interpreta la combinación</h3>
+            <p>El microcontrolador recibe todas las señales, las compara con los patrones fonológicos de la LSA cargados en el sistema y determina qué palabra corresponde.</p>
+            <div class="parts">ESP32 · PROCESAMIENTO EN TIEMPO REAL</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num mono">04</div>
+          <div>
+            <h3>El resultado se escucha y se muestra</h3>
+            <p>La palabra interpretada se reproduce por voz a través del módulo de audio y, al mismo tiempo, se muestra en una pantalla OLED para quienes prefieren leerla.</p>
+            <div class="parts">DFPLAYER + PARLANTE · PANTALLA OLED</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- EVOLUCIÓN DE LA CARCASA -->
+  <section class="section" style="padding-bottom:0;">
+    <div class="wrap">
+      <div class="section-head">
+        <div class="kicker">Evolución del diseño</div>
+        <h2>De la primera carcasa a la impresión 3D definitiva</h2>
+        <p>El primer prototipo llevaba la electrónica en una caja de muñeca improvisada. Con las devoluciones de la feria distrital, el equipo la rediseñó por completo e imprimió una nueva versión en 3D.</p>
+      </div>
+      <div class="gallery" style="grid-template-columns:repeat(2,1fr);">
+        <figure>
+          <img src="images/caja_vieja.jpeg" alt="Primera versión de la carcasa, sujeta a la muñeca">
+          <figcaption>Antes — primer prototipo de carcasa</figcaption>
+        </figure>
+        <figure>
+          <img src="images/caja_3d_2.jpeg" alt="Carcasa rediseñada e impresa en 3D">
+          <figcaption>Después — carcasa rediseñada e impresa en 3D</figcaption>
+        </figure>
+      </div>
+    </div>
+  </section>
+
+  <!-- PROCESO / GALERÍA -->
+  <section class="section" id="proceso">
+    <div class="wrap">
+      <div class="section-head">
+        <div class="kicker">El proceso</div>
+        <h2>Construido a mano, cable por cable</h2>
+        <p>Cada prototipo pasó por soldadura, cableado y pruebas repetidas antes de convertirse en un guante funcional.</p>
+      </div>
+
+      <h3 style="font-size:1.02rem; color:var(--teal-400); margin-bottom:18px;">Electrónica y componentes</h3>
+      <div class="gallery" style="margin-bottom:14px;">
+        <figure>
+          <img src="images/pines_esp32.jpeg" alt="Distribución de pines del ESP32">
+          <figcaption>Mapeo de pines del ESP32</figcaption>
+        </figure>
+        <figure>
+          <img src="images/componentes_bateria.jpeg" alt="Batería recargable y módulo de carga">
+          <figcaption>Batería LiPo y módulo de carga</figcaption>
+        </figure>
+        <figure>
+          <img src="images/configurando_flexs.jpeg" alt="Configuración de los sensores flex">
+          <figcaption>Configurando los sensores flex</figcaption>
+        </figure>
+      </div>
+
+      <h3 style="font-size:1.02rem; color:var(--teal-400); margin:34px 0 18px;">Armado y soldadura</h3>
+      <div class="gallery" style="margin-bottom:14px;">
+        <figure>
+          <img src="images/armando_guante.jpeg" alt="Armado del guante con los sensores">
+          <figcaption>Armando el guante</figcaption>
+        </figure>
+        <figure>
+          <img src="images/soldando_pistas.jpeg" alt="Soldadura de pistas del circuito">
+          <figcaption>Soldando las pistas del circuito</figcaption>
+        </figure>
+        <figure>
+          <img src="images/soldando_1.jpeg" alt="Soldadura de componentes electrónicos">
+          <figcaption>Soldando componentes</figcaption>
+        </figure>
+        <figure>
+          <img src="images/empalmes.jpeg" alt="Empalme de cables del circuito">
+          <figcaption>Empalmando los cables</figcaption>
+        </figure>
+        <figure>
+          <img src="images/conexiones.jpeg" alt="Conexiones del circuito en protoboard">
+          <figcaption>Conexiones en protoboard</figcaption>
+        </figure>
+        <figure>
+          <img src="images/guante_conectado.jpeg" alt="Guante con todos los sensores conectados">
+          <figcaption>Guante ya conectado</figcaption>
+        </figure>
+      </div>
+
+      <h3 style="font-size:1.02rem; color:var(--teal-400); margin:34px 0 18px;">Programación y pruebas</h3>
+      <div class="gallery" style="margin-bottom:14px;">
+        <figure>
+          <img src="images/prueba_mpu.jpeg" alt="Prueba del sensor MPU6050 con Arduino">
+          <figcaption>Probando el MPU6050</figcaption>
+        </figure>
+        <figure>
+          <img src="images/codigo_1.jpeg" alt="Programación por bloques del sensor">
+          <figcaption>Programando la lógica de lectura</figcaption>
+        </figure>
+        <figure>
+          <img src="images/probando_dfplayer.jpeg" alt="Prueba del módulo de audio DFPlayer">
+          <figcaption>Probando el módulo de audio</figcaption>
+        </figure>
+      </div>
+
+      <h3 style="font-size:1.02rem; color:var(--teal-400); margin:34px 0 18px;">Prototipo final</h3>
+      <div class="gallery">
+        <figure>
+          <img src="images/prueba_guante.jpeg" alt="Guante con sensores conectados durante una prueba">
+          <figcaption>Guante instrumentado, sesión de pruebas</figcaption>
+        </figure>
+        <figure>
+          <img src="images/img_guante_casi_listo.jpeg" alt="Guante casi terminado">
+          <figcaption>El guante, casi listo</figcaption>
+        </figure>
+        <figure>
+          <img src="images/probando_todo_junto.jpeg" alt="Prueba integral del sistema completo">
+          <figcaption>Prueba de todo el sistema junto</figcaption>
+        </figure>
+      </div>
+    </div>
+  </section>
+
+  <!-- CRONOGRAMA -->
+  <section class="section" style="padding-top:0;">
+    <div class="wrap">
+      <div class="section-head">
+        <div class="kicker">Cronograma</div>
+        <h2>20 semanas, 29 actividades</h2>
+        <p>Del diagnóstico inicial a la instancia provincial, así se organizó el equipo de abril a agosto.</p>
+      </div>
+      <div style="border-radius:10px; overflow:hidden; border:1px solid var(--line);">
+        <img src="images/diagrama_gantt.jpeg" alt="Cronograma de actividades del proyecto Signatec, instancia provincial">
+      </div>
+    </div>
+  </section>
+
+  <!-- IMPACTO -->
+  <section class="impact" id="impacto">
+    <div class="wrap section">
+      <div class="impact-grid">
+        <div>
+          <div class="impact-num">97<sup>%</sup></div>
+          <p class="impact-cap">de las personas encuestadas considera que este guante es una herramienta útil para la inclusión social.</p>
+        </div>
+        <ul class="impact-list">
+          <li><span><b>Transporte público y comercios.</b> Los espacios donde más se necesita una traducción inmediata, según la propia encuesta de campo.</span></li>
+          <li><span><b>Validación con datos reales.</b> El diseño surgió de encuestar a oyentes y personas con discapacidad del habla, no solo de una idea técnica.</span></li>
+          <li><span><b>Rigurosidad técnica.</b> Integración de ESP32, sensores flex y MPU6050 para interpretar los parámetros fonológicos de la LSA: configuración y movimiento.</span></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ROADMAP -->
+  <section class="section">
+    <div class="wrap">
+      <div class="section-head">
+        <div class="kicker">Próximos pasos</div>
+        <h2>Lo que sigue para SIGNATEC</h2>
+      </div>
+      <div class="roadmap-grid">
+        <div class="roadmap-card">
+          <div class="ico">+N</div>
+          <h3>Más combinaciones</h3>
+          <p>Sumar nuevas combinaciones de sensores para lograr traducir más palabras.</p>
+        </div>
+        <div class="roadmap-card">
+          <div class="ico">⚡</div>
+          <h3>Batería recargable</h3>
+          <p>Incorporar una batería recargable sin necesidad de desconectar el guante para cargarla.</p>
+        </div>
+        <div class="roadmap-card">
+          <div class="ico">◧</div>
+          <h3>Diseño compacto</h3>
+          <p>Lograr un diseño más compacto, con la electrónica integrada al guante en lugar de externa.</p>
+        </div>
+        <div class="roadmap-card">
+          <div class="ico">◍</div>
+          <h3>Guante de neopreno</h3>
+          <p>Rediseñar el guante en neopreno para lograr una mejor adhesión a la mano.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="cta-band" id="contacto">
+    <div class="wrap">
+      <h2>¿Querés conocer el prototipo en persona?</h2>
+      <p>Escribinos si sos parte del jurado de la feria, de una institución o simplemente querés saber más sobre el proyecto SIGNATEC.</p>
+      <div class="hero-ctas">
+        <a href="mailto:contacto@signatec.example" class="btn-primary">Escribir al equipo</a>
+        <a href="#funcionamiento" class="btn-ghost">Volver arriba</a>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="foot-grid">
+      <div>
+        <div class="foot-brand">
+          <span class="brand-mark"><img src="images/signatec_logo.jpeg" alt="Logo Signatec"></span>
+          SIGNATEC
+        </div>
+        <p class="foot-note" style="margin-top:12px;">Guante traductor de Lengua de Señas Argentina. Proyecto escolar de innovación e inclusión social.</p>
+      </div>
+      <p class="foot-note">Hecho con ESP32, sensores flex y MPU6050 — y muchas horas de soldadura.</p>
+    </div>
+
+    <div class="credits">
+      <div class="credits-item">
+        <span class="credits-label">Docente asesor</span>
+        <span class="credits-value">Eduardo Avendaño</span>
+      </div>
+      <div class="credits-item">
+        <span class="credits-label">Alumnos</span>
+        <span class="credits-value">Lautaro Sandoval y Emilio Ruano</span>
+      </div>
+      <div class="credits-item">
+        <span class="credits-label">Curso</span>
+        <span class="credits-value">6º 1ª — Técnicos Electromecánicos, turno vespertino</span>
+      </div>
+      <div class="credits-item">
+        <span class="credits-label">Institución</span>
+        <span class="credits-value">Escuela de Educación Técnica Nº 1 "Juan XXIII"</span>
+      </div>
+    </div>
+
+    <div class="copyright">© 2026 SIGNATEC. Proyecto educativo sin fines de lucro.</div>
+  </div>
+</footer>
+
+</body>
+</html>
