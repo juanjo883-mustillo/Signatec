@@ -50,6 +50,52 @@
   }
   p{margin:0;}
   img{max-width:100%;display:block;}
+  img.zoomable{cursor:zoom-in;}
+
+  /* ---------- lightbox ---------- */
+  .lightbox-overlay{
+    position:fixed;
+    inset:0;
+    background:rgba(8,19,31,0.94);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:32px;
+    z-index:200;
+    opacity:0;
+    visibility:hidden;
+    transition:opacity .2s ease;
+  }
+  .lightbox-overlay.is-active{opacity:1; visibility:visible;}
+  .lightbox-overlay img{
+    max-width:100%;
+    max-height:88vh;
+    width:auto;
+    object-fit:contain;
+    border-radius:8px;
+    box-shadow:0 20px 60px rgba(0,0,0,0.5);
+    cursor:zoom-out;
+  }
+  .lightbox-close{
+    position:absolute;
+    top:18px; right:22px;
+    width:40px; height:40px;
+    border-radius:50%;
+    border:1px solid var(--line);
+    background:rgba(8,19,31,0.82);
+    color:var(--ink-100);
+    font-size:1.4rem;
+    line-height:1;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    cursor:pointer;
+  }
+  .lightbox-close:hover{border-color:var(--teal-400); color:var(--teal-400);}
+  @media (max-width:600px){
+    .lightbox-overlay{padding:16px;}
+    .lightbox-close{top:10px; right:10px;}
+  }
   a{color:inherit;}
   .wrap{
     max-width:var(--maxw);
@@ -592,7 +638,7 @@
         </div>
       </div>
       <div class="hero-visual">
-        <img src="images/equipo_feria.jpeg" alt="Equipo de Signatec presentando el proyecto en la feria de ciencias">
+        <img class="zoomable" src="images/equipo_feria.jpeg" alt="Equipo de Signatec presentando el proyecto en la feria de ciencias">
         <div class="hero-logo-badge"><img src="images/signatec_logo.jpeg" alt="Logo Signatec"></div>
         <div class="tag">Feria ACTE · prototipo en vivo</div>
       </div>
@@ -640,7 +686,7 @@
     <div class="wrap">
       <div class="problem-body" style="align-items:center;">
         <div class="hero-visual" style="order:2;">
-          <img src="images/pegando_qr_encuesta.jpeg" alt="Estudiantes pegando el código QR de la encuesta de campo">
+          <img class="zoomable" src="images/pegando_qr_encuesta.jpeg" alt="Estudiantes pegando el código QR de la encuesta de campo">
           <div class="tag">Encuesta de campo · código QR</div>
         </div>
         <div style="order:1;">
@@ -707,11 +753,11 @@
       </div>
       <div class="gallery" style="grid-template-columns:repeat(2,1fr);">
         <figure>
-          <img src="images/caja_vieja.jpeg" alt="Primera versión de la carcasa, sujeta a la muñeca">
+          <img class="zoomable" src="images/caja_vieja.jpeg" alt="Primera versión de la carcasa, sujeta a la muñeca">
           <figcaption>Antes — primer prototipo de carcasa</figcaption>
         </figure>
         <figure>
-          <img src="images/caja_3d_2.jpeg" alt="Carcasa rediseñada e impresa en 3D">
+          <img class="zoomable" src="images/caja_3d_2.jpeg" alt="Carcasa rediseñada e impresa en 3D">
           <figcaption>Después — carcasa rediseñada e impresa en 3D</figcaption>
         </figure>
       </div>
@@ -730,15 +776,15 @@
       <h3 style="font-size:1.02rem; color:var(--teal-400); margin-bottom:18px;">Electrónica y componentes</h3>
       <div class="gallery" style="margin-bottom:14px;">
         <figure>
-          <img src="images/pines_esp32.jpeg" alt="Distribución de pines del ESP32">
+          <img class="zoomable" src="images/pines_esp32.jpeg" alt="Distribución de pines del ESP32">
           <figcaption>Mapeo de pines del ESP32</figcaption>
         </figure>
         <figure>
-          <img src="images/componentes_bateria.jpeg" alt="Batería recargable y módulo de carga">
+          <img class="zoomable" src="images/componentes_bateria.jpeg" alt="Batería recargable y módulo de carga">
           <figcaption>Batería LiPo y módulo de carga</figcaption>
         </figure>
         <figure>
-          <img src="images/configurando_flexs.jpeg" alt="Configuración de los sensores flex">
+          <img class="zoomable" src="images/configurando_flexs.jpeg" alt="Configuración de los sensores flex">
           <figcaption>Configurando los sensores flex</figcaption>
         </figure>
       </div>
@@ -746,27 +792,27 @@
       <h3 style="font-size:1.02rem; color:var(--teal-400); margin:34px 0 18px;">Armado y soldadura</h3>
       <div class="gallery" style="margin-bottom:14px;">
         <figure>
-          <img src="images/armando_guante.jpeg" alt="Armado del guante con los sensores">
+          <img class="zoomable" src="images/armando_guante.jpeg" alt="Armado del guante con los sensores">
           <figcaption>Armando el guante</figcaption>
         </figure>
         <figure>
-          <img src="images/soldando_pistas.jpeg" alt="Soldadura de pistas del circuito">
+          <img class="zoomable" src="images/soldando_pistas.jpeg" alt="Soldadura de pistas del circuito">
           <figcaption>Soldando las pistas del circuito</figcaption>
         </figure>
         <figure>
-          <img src="images/soldando_1.jpeg" alt="Soldadura de componentes electrónicos">
+          <img class="zoomable" src="images/soldando_1.jpeg" alt="Soldadura de componentes electrónicos">
           <figcaption>Soldando componentes</figcaption>
         </figure>
         <figure>
-          <img src="images/empalmes.jpeg" alt="Empalme de cables del circuito">
+          <img class="zoomable" src="images/empalmes.jpeg" alt="Empalme de cables del circuito">
           <figcaption>Empalmando los cables</figcaption>
         </figure>
         <figure>
-          <img src="images/conexiones.jpeg" alt="Conexiones del circuito en protoboard">
+          <img class="zoomable" src="images/conexiones.jpeg" alt="Conexiones del circuito en protoboard">
           <figcaption>Conexiones en protoboard</figcaption>
         </figure>
         <figure>
-          <img src="images/guante_conectado.jpeg" alt="Guante con todos los sensores conectados">
+          <img class="zoomable" src="images/guante_conectado.jpeg" alt="Guante con todos los sensores conectados">
           <figcaption>Guante ya conectado</figcaption>
         </figure>
       </div>
@@ -774,15 +820,15 @@
       <h3 style="font-size:1.02rem; color:var(--teal-400); margin:34px 0 18px;">Programación y pruebas</h3>
       <div class="gallery" style="margin-bottom:14px;">
         <figure>
-          <img src="images/prueba_mpu.jpeg" alt="Prueba del sensor MPU6050 con Arduino">
+          <img class="zoomable" src="images/prueba_mpu.jpeg" alt="Prueba del sensor MPU6050 con Arduino">
           <figcaption>Probando el MPU6050</figcaption>
         </figure>
         <figure>
-          <img src="images/codigo_1.jpeg" alt="Programación por bloques del sensor">
+          <img class="zoomable" src="images/codigo_1.jpeg" alt="Programación por bloques del sensor">
           <figcaption>Programando la lógica de lectura</figcaption>
         </figure>
         <figure>
-          <img src="images/probando_dfplayer.jpeg" alt="Prueba del módulo de audio DFPlayer">
+          <img class="zoomable" src="images/probando_dfplayer.jpeg" alt="Prueba del módulo de audio DFPlayer">
           <figcaption>Probando el módulo de audio</figcaption>
         </figure>
       </div>
@@ -790,15 +836,15 @@
       <h3 style="font-size:1.02rem; color:var(--teal-400); margin:34px 0 18px;">Prototipo final</h3>
       <div class="gallery">
         <figure>
-          <img src="images/prueba_guante.jpeg" alt="Guante con sensores conectados durante una prueba">
+          <img class="zoomable" src="images/prueba_guante.jpeg" alt="Guante con sensores conectados durante una prueba">
           <figcaption>Guante instrumentado, sesión de pruebas</figcaption>
         </figure>
         <figure>
-          <img src="images/img_guante_casi_listo.jpeg" alt="Guante casi terminado">
+          <img class="zoomable" src="images/img_guante_casi_listo.jpeg" alt="Guante casi terminado">
           <figcaption>El guante, casi listo</figcaption>
         </figure>
         <figure>
-          <img src="images/probando_todo_junto.jpeg" alt="Prueba integral del sistema completo">
+          <img class="zoomable" src="images/probando_todo_junto.jpeg" alt="Prueba integral del sistema completo">
           <figcaption>Prueba de todo el sistema junto</figcaption>
         </figure>
       </div>
@@ -814,7 +860,7 @@
         <p>Del diagnóstico inicial a la instancia provincial, así se organizó el equipo de abril a agosto.</p>
       </div>
       <div style="border-radius:10px; overflow:hidden; border:1px solid var(--line);">
-        <img src="images/diagrama_gantt.jpeg" alt="Cronograma de actividades del proyecto Signatec, instancia provincial">
+        <img class="zoomable" src="images/diagrama_gantt.jpeg" alt="Cronograma de actividades del proyecto Signatec, instancia provincial">
       </div>
     </div>
   </section>
@@ -918,5 +964,46 @@
   </div>
 </footer>
 
+<script>
+  (function(){
+    var overlay = document.createElement('div');
+    overlay.className = 'lightbox-overlay';
+    overlay.setAttribute('role', 'dialog');
+    overlay.setAttribute('aria-modal', 'true');
+    overlay.setAttribute('aria-label', 'Imagen ampliada');
+    overlay.innerHTML = '<button type="button" class="lightbox-close" aria-label="Cerrar imagen ampliada">&times;</button><img alt="">';
+    document.body.appendChild(overlay);
+
+    var overlayImg = overlay.querySelector('img');
+    var closeBtn = overlay.querySelector('.lightbox-close');
+    var lastFocused = null;
+
+    function openLightbox(img){
+      overlayImg.src = img.currentSrc || img.src;
+      overlayImg.alt = img.alt || '';
+      lastFocused = document.activeElement;
+      overlay.classList.add('is-active');
+      document.body.style.overflow = 'hidden';
+      closeBtn.focus();
+    }
+    function closeLightbox(){
+      overlay.classList.remove('is-active');
+      document.body.style.overflow = '';
+      overlayImg.src = '';
+      if(lastFocused) lastFocused.focus();
+    }
+
+    document.querySelectorAll('img.zoomable').forEach(function(img){
+      img.addEventListener('click', function(){ openLightbox(img); });
+    });
+    overlay.addEventListener('click', function(e){
+      if(e.target === overlay || e.target === overlayImg) closeLightbox();
+    });
+    closeBtn.addEventListener('click', closeLightbox);
+    document.addEventListener('keydown', function(e){
+      if(e.key === 'Escape' && overlay.classList.contains('is-active')) closeLightbox();
+    });
+  })();
+</script>
 </body>
 </html>
